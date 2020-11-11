@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>My Todo List</title>
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <!-- Don't use this in production: -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link rel="short icon" type="image/x-icon" href="img/favicon.ico" />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <div id="reactId"></div>
+
+    <script type="text/babel">
+      const ToDo = ({ text, deleteTodo }) => {
+        return (
+          <div className="todo">
+            <div className="todoItem">{text}</div>
+            <input
+              type="checkbox"
+              onChange={() => setTimeout(deleteTodo(text), 3000)}
+            />
+          </div>
+        );
+      };
+
+      const ToDos = () => {
+        const [text, setText] = React.useState("");
+        const [todos, updateTodos] = React.useState([]);
+        const updateText = (e) => setText(e.target.value);
+
+        //Run ONCE when the app start to get the items from localStorage
+        React.useEffect(() => {
+          getLocalTodos();
+        }, []);
+        //Run when todos changes
+        React.useEffect(() => {
+          saveLocalTodos();
+        }, [todos]);
+
+        //Save local
+        const saveLocalTodos = () => {
+          localStorage.setItem("todos", JSON.stringify(todos));
+        };
+
+        const getLocalTodos = () => {
+          if (localStorage.getItem("todos") === null) {
+            localStorage.setItem("todos", JSON.stringify([]));
+          } else {
+            let todoLocal = JSON.parse(localStorage.getItem("todos"));
+            updateTodos(todoLocal);
+          }
+        };
+
+        const addNewTodo = () => {
+          updateTodos((todos) => {
+            if (text == "") return todos;
+            const newTodos = [...todos];
+            newTodos.push(text);
+            setText("");
+            return newTodos;
+          });
+        };
+
+        return (
+          <>
+            <header className="header">
+              <div className="containerLogo">
+                <h1 className="title">My Todo</h1>
+              </div>
+              <div className="containerInput">
+                <input
+                  className="input"
+                  value={text}
+                  onChange={updateText}
+                  placeholder="Add ToDo"
+                />
+              </div>
+              <div className="containerButton">
+                <button className="add" onClick={addNewTodo}>
+                  +
+                </button>
+              </div>
+            </header>
+            <main>
+              <section className="todos">
+                {todos.map((todo) => {
+                  const deleteTodo = (text) =>
+                    updateTodos(() => todos.filter((todo) => todo != text));
+                  return (
+                    <ToDo key={todo} text={todo} deleteTodo={deleteTodo} />
+                  );
+                })}
+              </section>
+            </main>
+          </>
+        );
+      };
+      const body = document.getElementsByTagName("body")[0];
+      ReactDOM.render(<ToDos />, body);
+    </script>
+  </body>
+</html>
